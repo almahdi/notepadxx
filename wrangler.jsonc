@@ -2,9 +2,9 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "notepadxx",
   "compatibility_date": "2025-12-08",
+  "send_metrics": false,
   "assets": {
     "directory": "./dist",
-    "binding": "ASSETS",
     "not_found_handling": "single-page-application"
   }
 }
