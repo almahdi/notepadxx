@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-pwa-assets": "pwa-assets-generator --preset minimal-2023 public/logo.webp",
-    "prebuild": "npm run generate-pwa-assets"
+    "test_prebuild": "npm run generate-pwa-assets"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
