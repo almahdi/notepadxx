@@ -12,6 +12,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePWA, checkForSWUpdates } from './hooks/usePWA';
+import { useOfflineReadyToast } from './hooks/useOfflineReadyToast';
+import { Toaster } from "@/components/ui/sonner";
 
 const DB_NAME = 'notepadxx';
 const DB_VERSION = 2;
@@ -46,6 +49,11 @@ function App() {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [tabToClose, setTabToClose] = useState<number | null>(null);
   const [theme, setThemeState] = useState<Theme>('system');
+
+  // Initialize PWA functionality
+  usePWA();
+  checkForSWUpdates();
+  useOfflineReadyToast();
   const [restoreData, setRestoreData] = useState<{
     backup: {
       version: string;
@@ -468,6 +476,9 @@ function App() {
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
+      {/* PWA Toaster */}
+      <Toaster />
+      
       {/* Menubar */}
       <div className="bg-muted p-2 flex justify-between items-center border-b">
         <div className="flex space-x-4">
