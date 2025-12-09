@@ -477,7 +477,7 @@ function App() {
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
       {/* PWA Toaster */}
-      <Toaster />
+      <Toaster position="top-right" />
       
       {/* Menubar */}
       <div className="bg-muted p-2 flex justify-between items-center border-b">
