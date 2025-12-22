@@ -8,7 +8,6 @@
 
 > A powerful, browser-based code editor that replicates Notepad++ functionality with modern web technologies. Built for developers who need a lightweight, offline-capable editing environment.
 
-![NotepadXX Screenshot](https://via.placeholder.com/800x400/1f2937/ffffff?text=NotepadXX+-+Browser+Based+Code+Editor)
 
 ## ✨ Features
 
