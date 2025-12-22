@@ -345,12 +345,6 @@ I'm a passionate developer and technology enthusiast with an MBA and deep expert
 - **YouTube**: [Ali Almahdi](https://youtube.com/alialmahdi)
 - **Instagram**: [@_alialmahdi_](https://instagram.com/_alialmahdi_)
 
-### Achievements
-- 🦈 Pull Shark (x2)
-- ⭐ Starstruck
-- 🏔️ Arctic Code Vault Contributor
-- 🎯 YOLO
-
 As a tech researcher and storyteller, I believe in making complex technologies accessible while keeping it real about the challenges and triumphs of both professional and personal growth. Join me as I explore the fascinating intersection of technology, life experiences, and the future we're building together.
 
 ## 🙏 Acknowledgments
@@ -360,45 +354,6 @@ As a tech researcher and storyteller, I believe in making complex technologies a
 - **Vite Team** - For the lightning-fast build tool
 - **Tailwind CSS** - For the utility-first CSS framework
 - **Notepad++ Community** - For the inspiration and feature ideas
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### IndexedDB Quota Exceeded
-**Problem**: Browser storage limit reached
-**Solution**:
-- Clear browser data for the site
-- Use backup/restore to manage large datasets
-- Remove unused files and tabs
-
-#### Build Fails
-**Problem**: `pnpm build` or `pnpm dev` fails
-**Solution**:
-- Ensure Node.js 18+ is installed
-- Clear node_modules and reinstall: `rm -rf node_modules && pnpm install`
-- Check pnpm is up to date: `pnpm add -g pnpm`
-
-#### Theme Not Applying
-**Problem**: Dark/light theme switch not working
-**Solution**:
-- Check browser CSS custom properties support
-- Verify Tailwind CSS build completed successfully
-- Refresh browser cache (Ctrl+F5)
-
-#### Files Not Saving
-**Problem**: Changes not persisting after refresh
-**Solution**:
-- Check browser allows IndexedDB (private browsing may block it)
-- Verify browser hasn't cleared site data
-- Check browser console for IndexedDB errors
-
-#### Performance Issues
-**Problem**: Editor lag with large files
-**Solution**:
-- Keep individual files under 1MB for optimal performance
-- Close unused tabs to free memory
-- Use backup/restore for managing large datasets
 
 ### Getting Help
 1. Check the [Issues](https://github.com/almahdi/notepadxx/issues) page
