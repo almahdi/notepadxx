@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { openDB } from 'idb';
-import { X, Save, Plus, Search, Replace, Info, Download, Upload, Sun, Moon, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Save, Plus, Search, Replace, Info, Download, Upload, Sun, Moon, AlertCircle, CheckCircle, Eye } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -49,6 +50,7 @@ function App() {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [tabToClose, setTabToClose] = useState<number | null>(null);
   const [theme, setThemeState] = useState<Theme>('system');
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
 
   // Initialize PWA functionality
   usePWA();
@@ -450,6 +452,12 @@ function App() {
 
   const activeTab = tabs.find(t => t.id === activeTabId);
 
+  useEffect(() => {
+    if (activeTab?.language !== 'markdown' && showMarkdownPreview) {
+      setShowMarkdownPreview(false);
+    }
+  }, [activeTab?.language, showMarkdownPreview]);
+
   // ModeToggle component
   const ModeToggle = () => (
     <DropdownMenu>
@@ -495,6 +503,18 @@ function App() {
             <Button variant="outline" size="sm" onClick={createBackup}><Download size={16} className="mr-1" />Backup</Button>
             <Button variant="outline" size="sm" onClick={handleRestoreClick}><Upload size={16} className="mr-1" />Restore</Button>
           </div>
+          {activeTab?.language === 'markdown' && (
+            <div className="flex space-x-2">
+              <Button
+                variant={showMarkdownPreview ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowMarkdownPreview((prev) => !prev)}
+              >
+                <Eye size={16} className="mr-1" />
+                Preview
+              </Button>
+            </div>
+          )}
          </div>
          <div className="flex space-x-2 items-center">
            <Select value={activeTab?.language || 'plaintext'} onValueChange={updateLanguage}>
@@ -570,16 +590,28 @@ function App() {
       </div>
 
        {/* Editor Area */}
-       <div className="flex-1">
-         <Editor
-           height="100%"
-           language={activeTab?.language}
-           value={activeTab?.content}
-           onChange={updateContent}
-           theme={getMonacoTheme(theme)}
-           options={{ fontSize }}
-           onMount={(editor) => { editorRef.current = editor; }}
-         />
+       <div className={`flex-1 flex overflow-hidden ${showMarkdownPreview && activeTab?.language === 'markdown' ? 'flex-col md:flex-row' : ''}`}>
+         <div className={`${showMarkdownPreview && activeTab?.language === 'markdown' ? 'md:w-1/2' : 'w-full'} flex-1 min-w-0`}>
+           <Editor
+             height="100%"
+             language={activeTab?.language}
+             value={activeTab?.content}
+             onChange={updateContent}
+             theme={getMonacoTheme(theme)}
+             options={{ fontSize }}
+             onMount={(editor) => { editorRef.current = editor; }}
+           />
+         </div>
+         {showMarkdownPreview && activeTab?.language === 'markdown' && (
+           <div className="md:w-1/2 border-t md:border-t-0 md:border-l overflow-auto p-4 bg-muted/50 text-foreground">
+             <h3 className="text-sm font-semibold mb-2">Preview</h3>
+             <div className="space-y-3 leading-relaxed break-words">
+               <ReactMarkdown>
+                 {activeTab?.content || ''}
+               </ReactMarkdown>
+             </div>
+           </div>
+         )}
        </div>
 
       {/* About Modal */}
