@@ -458,7 +458,7 @@ function App() {
     if (activeTab?.language !== 'markdown' && showMarkdownPreview) {
       setShowMarkdownPreview(false);
     }
-  }, [activeTab?.language]);
+  }, [activeTab?.language, showMarkdownPreview]);
 
   // ModeToggle component
   const ModeToggle = () => (
