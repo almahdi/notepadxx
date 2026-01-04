@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { openDB } from 'idb';
 import { X, Save, Plus, Search, Replace, Info, Download, Upload, Sun, Moon, AlertCircle, CheckCircle, Eye } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -451,12 +452,13 @@ function App() {
   };
 
   const activeTab = tabs.find(t => t.id === activeTabId);
+  const isMarkdownPreviewActive = showMarkdownPreview && activeTab?.language === 'markdown';
 
   useEffect(() => {
     if (activeTab?.language !== 'markdown' && showMarkdownPreview) {
       setShowMarkdownPreview(false);
     }
-  }, [activeTab?.language, showMarkdownPreview]);
+  }, [activeTab?.language]);
 
   // ModeToggle component
   const ModeToggle = () => (
@@ -506,7 +508,7 @@ function App() {
           {activeTab?.language === 'markdown' && (
             <div className="flex space-x-2">
               <Button
-                variant={showMarkdownPreview ? "default" : "outline"}
+                variant={isMarkdownPreviewActive ? "default" : "outline"}
                 size="sm"
                 onClick={() => setShowMarkdownPreview((prev) => !prev)}
               >
@@ -590,8 +592,8 @@ function App() {
       </div>
 
        {/* Editor Area */}
-       <div className={`flex-1 flex overflow-hidden ${showMarkdownPreview && activeTab?.language === 'markdown' ? 'flex-col md:flex-row' : ''}`}>
-         <div className={`${showMarkdownPreview && activeTab?.language === 'markdown' ? 'md:w-1/2' : 'w-full'} flex-1 min-w-0`}>
+       <div className={`flex-1 flex overflow-hidden ${isMarkdownPreviewActive ? 'flex-col md:flex-row' : ''}`}>
+         <div className={`${isMarkdownPreviewActive ? 'md:w-1/2' : 'w-full'} flex-1 min-w-0`}>
            <Editor
              height="100%"
              language={activeTab?.language}
@@ -602,11 +604,11 @@ function App() {
              onMount={(editor) => { editorRef.current = editor; }}
            />
          </div>
-         {showMarkdownPreview && activeTab?.language === 'markdown' && (
+         {isMarkdownPreviewActive && (
            <div className="md:w-1/2 border-t md:border-t-0 md:border-l overflow-auto p-4 bg-muted/50 text-foreground">
              <h3 className="text-sm font-semibold mb-2">Preview</h3>
              <div className="space-y-3 leading-relaxed break-words">
-               <ReactMarkdown>
+               <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
                  {activeTab?.content || ''}
                </ReactMarkdown>
              </div>
