@@ -1,7 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import Editor from '@monaco-editor/react';
 import { openDB } from 'idb';
-import { X, Save, Plus, Search, Replace, Info, Download, Upload, Sun, Moon, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Save, Plus, Search, Replace, Info, Download, Upload, Sun, Moon, AlertCircle, CheckCircle, Eye } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github.css';
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -18,6 +22,20 @@ import { Toaster } from "@/components/ui/sonner";
 
 const DB_NAME = 'notepadxx';
 const DB_VERSION = 2;
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [
+      ...(defaultSchema.attributes?.code || []),
+      ['className', 'language-*']
+    ],
+    pre: [
+      ...(defaultSchema.attributes?.pre || []),
+      ['className', 'hljs', 'language-*']
+    ]
+  }
+};
 
 // Theme types
 type Theme = 'dark' | 'light' | 'system';
@@ -49,6 +67,8 @@ function App() {
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [tabToClose, setTabToClose] = useState<number | null>(null);
   const [theme, setThemeState] = useState<Theme>('system');
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   // Initialize PWA functionality
   usePWA();
@@ -449,6 +469,70 @@ function App() {
   };
 
   const activeTab = tabs.find(t => t.id === activeTabId);
+  const isMarkdownPreviewActive = showMarkdownPreview && activeTab?.language === 'markdown';
+
+  const CodeBlock = ({ inline, className, children }: { inline?: boolean; className?: string; children: ReactNode }) => {
+    const match = /language-(\w+)/.exec(className || '');
+    const extractText = (node: ReactNode): string => {
+      if (typeof node === 'string' || typeof node === 'number') return String(node);
+      if (!node) return '';
+      if (Array.isArray(node)) return node.map(extractText).join('');
+      if (typeof node === 'object' && 'props' in (node as Record<string, unknown>)) {
+        const props = (node as { props?: { children?: ReactNode } }).props;
+        return props?.children ? extractText(props.children) : '';
+      }
+      return '';
+    };
+
+    const content = extractText(children).replace(/\n$/, '');
+    const langLabel = match ? match[1] : '';
+
+    if (inline) {
+      return (
+        <code className={className}>
+          {children}
+        </code>
+      );
+    }
+
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(content);
+        setCopiedCode(content);
+        setTimeout(() => setCopiedCode(null), 1500);
+      } catch {
+        showAlertMessage('Failed to copy code', 'error');
+      }
+    };
+
+    const isCopied = copiedCode === content;
+
+    return (
+      <div className="relative group">
+        <div className="absolute right-2 top-2 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {langLabel && (
+            <span className="text-xs px-2 py-1 rounded bg-muted text-foreground border">
+              {langLabel}
+            </span>
+          )}
+          <Button variant="secondary" size="sm" onClick={handleCopy}>
+            {isCopied ? 'Copied' : 'Copy'}
+          </Button>
+        </div>
+        <pre className={`rounded-md border bg-muted/60 p-4 overflow-auto ${className || ''}`}>
+          <code className={className}>
+            {children}
+          </code>
+        </pre>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    if (activeTab?.language !== 'markdown' && showMarkdownPreview) {
+      setShowMarkdownPreview(false);
+    }
+  }, [activeTab?.language, showMarkdownPreview]);
 
   // ModeToggle component
   const ModeToggle = () => (
@@ -495,6 +579,18 @@ function App() {
             <Button variant="outline" size="sm" onClick={createBackup}><Download size={16} className="mr-1" />Backup</Button>
             <Button variant="outline" size="sm" onClick={handleRestoreClick}><Upload size={16} className="mr-1" />Restore</Button>
           </div>
+          {activeTab?.language === 'markdown' && (
+            <div className="flex space-x-2">
+              <Button
+                variant={isMarkdownPreviewActive ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowMarkdownPreview((prev) => !prev)}
+              >
+                <Eye size={16} className="mr-1" />
+                Preview
+              </Button>
+            </div>
+          )}
          </div>
          <div className="flex space-x-2 items-center">
            <Select value={activeTab?.language || 'plaintext'} onValueChange={updateLanguage}>
@@ -570,16 +666,33 @@ function App() {
       </div>
 
        {/* Editor Area */}
-       <div className="flex-1">
-         <Editor
-           height="100%"
-           language={activeTab?.language}
-           value={activeTab?.content}
-           onChange={updateContent}
-           theme={getMonacoTheme(theme)}
-           options={{ fontSize }}
-           onMount={(editor) => { editorRef.current = editor; }}
-         />
+       <div className={`flex-1 flex overflow-hidden ${isMarkdownPreviewActive ? 'flex-col md:flex-row' : ''}`}>
+         <div className={`${isMarkdownPreviewActive ? 'md:w-1/2' : 'w-full'} flex-1 min-w-0`}>
+           <Editor
+             height="100%"
+             language={activeTab?.language}
+             value={activeTab?.content}
+             onChange={updateContent}
+             theme={getMonacoTheme(theme)}
+             options={{ fontSize }}
+             onMount={(editor) => { editorRef.current = editor; }}
+           />
+         </div>
+         {isMarkdownPreviewActive && (
+           <div className="md:w-1/2 border-t md:border-t-0 md:border-l overflow-auto p-4 bg-muted/50 text-foreground">
+             <h3 className="text-sm font-semibold mb-2">Preview</h3>
+             <div className="prose prose-neutral dark:prose-invert max-w-none">
+               <ReactMarkdown
+                 rehypePlugins={[rehypeSanitize(markdownSanitizeSchema), rehypeHighlight]}
+                 components={{
+                   code: CodeBlock
+                 }}
+               >
+                 {activeTab?.content || ''}
+               </ReactMarkdown>
+             </div>
+           </div>
+         )}
        </div>
 
       {/* About Modal */}
